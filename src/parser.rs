@@ -518,8 +518,9 @@ impl<'i: 't, 't> Parser<'i, 't> {
         self.input.tokenizer.skip_whitespace()
     }
 
+    // CHANGE: expose
     #[inline]
-    pub(crate) fn skip_cdc_and_cdo(&mut self) {
+    pub fn skip_cdc_and_cdo(&mut self) {
         if let Some(block_type) = self.at_start_of.take() {
             consume_until_end_of_block(block_type, &mut self.input.tokenizer);
         }
@@ -527,8 +528,9 @@ impl<'i: 't, 't> Parser<'i, 't> {
         self.input.tokenizer.skip_cdc_and_cdo()
     }
 
+    // CHANGE: expose
     #[inline]
-    pub(crate) fn next_byte(&self) -> Option<u8> {
+    pub fn next_byte(&self) -> Option<u8> {
         let byte = self.input.tokenizer.next_byte();
         if self.stop_before.contains(Delimiters::from_byte(byte)) {
             return None;

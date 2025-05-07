@@ -5,7 +5,9 @@
 #![crate_name = "cssparser"]
 #![crate_type = "rlib"]
 #![cfg_attr(feature = "bench", feature(test))]
-#![deny(missing_docs)]
+
+// CHANGE: less-rs exposes a few internal methods
+// #![deny(missing_docs)]
 
 /*!
 
@@ -74,9 +76,13 @@ pub use crate::macros::{
     _cssparser_internal_create_uninit_array, _cssparser_internal_to_lowercase,
 };
 pub use crate::nth::parse_nth;
+// CHANGE: expose
+pub use crate::parser::parse_nested_block;
 pub use crate::parser::{BasicParseError, BasicParseErrorKind, ParseError, ParseErrorKind};
 pub use crate::parser::{Delimiter, Delimiters, Parser, ParserInput, ParserState};
 pub use crate::rules_and_declarations::{parse_important, parse_one_declaration};
+// CHANGE: expose
+pub use crate::rules_and_declarations::{looks_like_a_custom_property, parse_at_rule};
 pub use crate::rules_and_declarations::{parse_one_rule, StyleSheetParser};
 pub use crate::rules_and_declarations::{AtRuleParser, QualifiedRuleParser};
 pub use crate::rules_and_declarations::{DeclarationParser, RuleBodyItemParser, RuleBodyParser};

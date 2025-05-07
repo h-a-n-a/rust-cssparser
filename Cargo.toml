@@ -38,5 +38,3 @@ dummy_match_byte = []
 # Useful for skipping tests when execution is slow, e.g., under miri
 skip_long_tests = []
 
-[workspace]
-members = [".", "./macros", "./color"]

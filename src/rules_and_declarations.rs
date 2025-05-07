@@ -452,7 +452,8 @@ where
     })
 }
 
-fn parse_at_rule<'i, 't, P, E>(
+// CHANGE: expose
+pub fn parse_at_rule<'i, 't, P, E>(
     start: &ParserState,
     name: CowRcStr<'i>,
     input: &mut Parser<'i, 't>,
@@ -487,9 +488,10 @@ where
     }
 }
 
+// CHANGE: expose
 //  If the first two non-<whitespace-token> values of rule’s prelude are an <ident-token> whose
 //  value starts with "--" followed by a <colon-token>, then...
-fn looks_like_a_custom_property(input: &mut Parser) -> bool {
+pub fn looks_like_a_custom_property(input: &mut Parser) -> bool {
     let ident = match input.expect_ident() {
         Ok(i) => i,
         Err(..) => return false,
