@@ -6,35 +6,35 @@ use crate::cow_rc_str::CowRcStr;
 use crate::tokenizer::Token;
 
 macro_rules! size_of_test {
-    ($testname: ident, $t: ty, $expected_min_size: expr, $expected_max_size: expr) => {
-        #[test]
-        fn $testname() {
-            let new = ::std::mem::size_of::<$t>();
-            if new < $expected_min_size {
-                panic!(
-                    "Your changes have decreased the stack size of {} from {} to {}. \
+  ($testname: ident, $t: ty, $expected_min_size: expr, $expected_max_size: expr) => {
+    #[test]
+    fn $testname() {
+      let new = ::std::mem::size_of::<$t>();
+      if new < $expected_min_size {
+        panic!(
+          "Your changes have decreased the stack size of {} from {} to {}. \
                      Good work! Please update the expected size in {}.",
-                    stringify!($t),
-                    $expected_min_size,
-                    new,
-                    file!()
-                )
-            } else if new > $expected_max_size {
-                panic!(
-                    "Your changes have increased the stack size of {} from {} to {}. \
+          stringify!($t),
+          $expected_min_size,
+          new,
+          file!()
+        )
+      } else if new > $expected_max_size {
+        panic!(
+          "Your changes have increased the stack size of {} from {} to {}. \
                      Please consider choosing a design which avoids this increase. \
                      If you feel that the increase is necessary, update the size in {}.",
-                    stringify!($t),
-                    $expected_max_size,
-                    new,
-                    file!()
-                )
-            }
-        }
-    };
-    ($testname: ident, $t: ty, $expected_size: expr) => {
-        size_of_test!($testname, $t, $expected_size, $expected_size);
-    };
+          stringify!($t),
+          $expected_max_size,
+          new,
+          file!()
+        )
+      }
+    }
+  };
+  ($testname: ident, $t: ty, $expected_size: expr) => {
+    size_of_test!($testname, $t, $expected_size, $expected_size);
+  };
 }
 
 // Some of these assume 64-bit

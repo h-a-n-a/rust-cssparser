@@ -5,7 +5,6 @@
 #![crate_name = "cssparser"]
 #![crate_type = "rlib"]
 #![cfg_attr(feature = "bench", feature(test))]
-
 // CHANGE: less-rs exposes a few internal methods
 // #![deny(missing_docs)]
 
@@ -73,7 +72,7 @@ pub use crate::cow_rc_str::CowRcStr;
 pub use crate::from_bytes::{stylesheet_encoding, EncodingSupport};
 #[doc(hidden)]
 pub use crate::macros::{
-    _cssparser_internal_create_uninit_array, _cssparser_internal_to_lowercase,
+  _cssparser_internal_create_uninit_array, _cssparser_internal_to_lowercase,
 };
 pub use crate::nth::parse_nth;
 // CHANGE: expose

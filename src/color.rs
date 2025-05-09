@@ -35,42 +35,42 @@ use std::fmt;
 /// <https://github.com/rust-lang/rust/issues/10184>
 #[inline]
 pub fn clamp_unit_f32(val: f32) -> u8 {
-    clamp_floor_256_f32(val * 255.)
+  clamp_floor_256_f32(val * 255.)
 }
 
 /// Round and clamp a single number to a u8.
 #[inline]
 pub fn clamp_floor_256_f32(val: f32) -> u8 {
-    val.round().clamp(0., 255.) as u8
+  val.round().clamp(0., 255.) as u8
 }
 
 /// Serialize the alpha copmonent of a color according to the specification.
 /// <https://drafts.csswg.org/css-color-4/#serializing-alpha-values>
 #[inline]
 pub fn serialize_color_alpha(
-    dest: &mut impl fmt::Write,
-    alpha: Option<f32>,
-    legacy_syntax: bool,
+  dest: &mut impl fmt::Write,
+  alpha: Option<f32>,
+  legacy_syntax: bool,
 ) -> fmt::Result {
-    let alpha = match alpha {
-        None => return dest.write_str(" / none"),
-        Some(a) => a,
-    };
+  let alpha = match alpha {
+    None => return dest.write_str(" / none"),
+    Some(a) => a,
+  };
 
-    // If the alpha component is full opaque, don't emit the alpha value in CSS.
-    if alpha == OPAQUE {
-        return Ok(());
-    }
+  // If the alpha component is full opaque, don't emit the alpha value in CSS.
+  if alpha == OPAQUE {
+    return Ok(());
+  }
 
-    dest.write_str(if legacy_syntax { ", " } else { " / " })?;
+  dest.write_str(if legacy_syntax { ", " } else { " / " })?;
 
-    // Try first with two decimal places, then with three.
-    let mut rounded_alpha = (alpha * 100.).round() / 100.;
-    if clamp_unit_f32(rounded_alpha) != clamp_unit_f32(alpha) {
-        rounded_alpha = (alpha * 1000.).round() / 1000.;
-    }
+  // Try first with two decimal places, then with three.
+  let mut rounded_alpha = (alpha * 100.).round() / 100.;
+  if clamp_unit_f32(rounded_alpha) != clamp_unit_f32(alpha) {
+    rounded_alpha = (alpha * 1000.).round() / 1000.;
+  }
 
-    rounded_alpha.to_css(dest)
+  rounded_alpha.to_css(dest)
 }
 
 /// A Predefined color space specified in:
@@ -79,93 +79,93 @@ pub fn serialize_color_alpha(
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(tag = "type"))]
 pub enum PredefinedColorSpace {
-    /// <https://drafts.csswg.org/css-color-4/#predefined-sRGB>
-    Srgb,
-    /// <https://drafts.csswg.org/css-color-4/#predefined-sRGB-linear>
-    SrgbLinear,
-    /// <https://drafts.csswg.org/css-color-4/#predefined-display-p3>
-    DisplayP3,
-    /// <https://drafts.csswg.org/css-color-4/#predefined-a98-rgb>
-    A98Rgb,
-    /// <https://drafts.csswg.org/css-color-4/#predefined-prophoto-rgb>
-    ProphotoRgb,
-    /// <https://drafts.csswg.org/css-color-4/#predefined-rec2020>
-    Rec2020,
-    /// <https://drafts.csswg.org/css-color-4/#predefined-xyz>
-    XyzD50,
-    /// <https://drafts.csswg.org/css-color-4/#predefined-xyz>
-    XyzD65,
+  /// <https://drafts.csswg.org/css-color-4/#predefined-sRGB>
+  Srgb,
+  /// <https://drafts.csswg.org/css-color-4/#predefined-sRGB-linear>
+  SrgbLinear,
+  /// <https://drafts.csswg.org/css-color-4/#predefined-display-p3>
+  DisplayP3,
+  /// <https://drafts.csswg.org/css-color-4/#predefined-a98-rgb>
+  A98Rgb,
+  /// <https://drafts.csswg.org/css-color-4/#predefined-prophoto-rgb>
+  ProphotoRgb,
+  /// <https://drafts.csswg.org/css-color-4/#predefined-rec2020>
+  Rec2020,
+  /// <https://drafts.csswg.org/css-color-4/#predefined-xyz>
+  XyzD50,
+  /// <https://drafts.csswg.org/css-color-4/#predefined-xyz>
+  XyzD65,
 }
 
 impl PredefinedColorSpace {
-    /// Parse a PredefinedColorSpace from the given input.
-    pub fn parse<'i>(input: &mut Parser<'i, '_>) -> Result<Self, BasicParseError<'i>> {
-        let location = input.current_source_location();
+  /// Parse a PredefinedColorSpace from the given input.
+  pub fn parse<'i>(input: &mut Parser<'i, '_>) -> Result<Self, BasicParseError<'i>> {
+    let location = input.current_source_location();
 
-        let ident = input.expect_ident()?;
-        Ok(match_ignore_ascii_case! { ident,
-            "srgb" => Self::Srgb,
-            "srgb-linear" => Self::SrgbLinear,
-            "display-p3" => Self::DisplayP3,
-            "a98-rgb" => Self::A98Rgb,
-            "prophoto-rgb" => Self::ProphotoRgb,
-            "rec2020" => Self::Rec2020,
-            "xyz-d50" => Self::XyzD50,
-            "xyz" | "xyz-d65" => Self::XyzD65,
-            _ => return Err(location.new_basic_unexpected_token_error(Token::Ident(ident.clone()))),
-        })
-    }
+    let ident = input.expect_ident()?;
+    Ok(match_ignore_ascii_case! { ident,
+        "srgb" => Self::Srgb,
+        "srgb-linear" => Self::SrgbLinear,
+        "display-p3" => Self::DisplayP3,
+        "a98-rgb" => Self::A98Rgb,
+        "prophoto-rgb" => Self::ProphotoRgb,
+        "rec2020" => Self::Rec2020,
+        "xyz-d50" => Self::XyzD50,
+        "xyz" | "xyz-d65" => Self::XyzD65,
+        _ => return Err(location.new_basic_unexpected_token_error(Token::Ident(ident.clone()))),
+    })
+  }
 }
 
 impl ToCss for PredefinedColorSpace {
-    fn to_css<W>(&self, dest: &mut W) -> fmt::Result
-    where
-        W: fmt::Write,
-    {
-        dest.write_str(match self {
-            Self::Srgb => "srgb",
-            Self::SrgbLinear => "srgb-linear",
-            Self::DisplayP3 => "display-p3",
-            Self::A98Rgb => "a98-rgb",
-            Self::ProphotoRgb => "prophoto-rgb",
-            Self::Rec2020 => "rec2020",
-            Self::XyzD50 => "xyz-d50",
-            Self::XyzD65 => "xyz-d65",
-        })
-    }
+  fn to_css<W>(&self, dest: &mut W) -> fmt::Result
+  where
+    W: fmt::Write,
+  {
+    dest.write_str(match self {
+      Self::Srgb => "srgb",
+      Self::SrgbLinear => "srgb-linear",
+      Self::DisplayP3 => "display-p3",
+      Self::A98Rgb => "a98-rgb",
+      Self::ProphotoRgb => "prophoto-rgb",
+      Self::Rec2020 => "rec2020",
+      Self::XyzD50 => "xyz-d50",
+      Self::XyzD65 => "xyz-d65",
+    })
+  }
 }
 
 /// Parse a color hash, without the leading '#' character.
 #[allow(clippy::result_unit_err)]
 #[inline]
 pub fn parse_hash_color(value: &[u8]) -> Result<(u8, u8, u8, f32), ()> {
-    Ok(match value.len() {
-        8 => (
-            from_hex(value[0])? * 16 + from_hex(value[1])?,
-            from_hex(value[2])? * 16 + from_hex(value[3])?,
-            from_hex(value[4])? * 16 + from_hex(value[5])?,
-            (from_hex(value[6])? * 16 + from_hex(value[7])?) as f32 / 255.0,
-        ),
-        6 => (
-            from_hex(value[0])? * 16 + from_hex(value[1])?,
-            from_hex(value[2])? * 16 + from_hex(value[3])?,
-            from_hex(value[4])? * 16 + from_hex(value[5])?,
-            OPAQUE,
-        ),
-        4 => (
-            from_hex(value[0])? * 17,
-            from_hex(value[1])? * 17,
-            from_hex(value[2])? * 17,
-            (from_hex(value[3])? * 17) as f32 / 255.0,
-        ),
-        3 => (
-            from_hex(value[0])? * 17,
-            from_hex(value[1])? * 17,
-            from_hex(value[2])? * 17,
-            OPAQUE,
-        ),
-        _ => return Err(()),
-    })
+  Ok(match value.len() {
+    8 => (
+      from_hex(value[0])? * 16 + from_hex(value[1])?,
+      from_hex(value[2])? * 16 + from_hex(value[3])?,
+      from_hex(value[4])? * 16 + from_hex(value[5])?,
+      (from_hex(value[6])? * 16 + from_hex(value[7])?) as f32 / 255.0,
+    ),
+    6 => (
+      from_hex(value[0])? * 16 + from_hex(value[1])?,
+      from_hex(value[2])? * 16 + from_hex(value[3])?,
+      from_hex(value[4])? * 16 + from_hex(value[5])?,
+      OPAQUE,
+    ),
+    4 => (
+      from_hex(value[0])? * 17,
+      from_hex(value[1])? * 17,
+      from_hex(value[2])? * 17,
+      (from_hex(value[3])? * 17) as f32 / 255.0,
+    ),
+    3 => (
+      from_hex(value[0])? * 17,
+      from_hex(value[1])? * 17,
+      from_hex(value[2])? * 17,
+      OPAQUE,
+    ),
+    _ => return Err(()),
+  })
 }
 
 ascii_case_insensitive_phf_map! {
@@ -327,22 +327,22 @@ ascii_case_insensitive_phf_map! {
 #[allow(clippy::result_unit_err)]
 #[inline]
 pub fn parse_named_color(ident: &str) -> Result<(u8, u8, u8), ()> {
-    named_colors::get(ident).copied().ok_or(())
+  named_colors::get(ident).copied().ok_or(())
 }
 
 /// Returns an iterator over all named CSS colors.
 /// <https://drafts.csswg.org/css-color-4/#typedef-named-color>
 #[inline]
 pub fn all_named_colors() -> impl Iterator<Item = (&'static str, (u8, u8, u8))> {
-    named_colors::entries().map(|(k, v)| (*k, *v))
+  named_colors::entries().map(|(k, v)| (*k, *v))
 }
 
 #[inline]
 fn from_hex(c: u8) -> Result<u8, ()> {
-    match c {
-        b'0'..=b'9' => Ok(c - b'0'),
-        b'a'..=b'f' => Ok(c - b'a' + 10),
-        b'A'..=b'F' => Ok(c - b'A' + 10),
-        _ => Err(()),
-    }
+  match c {
+    b'0'..=b'9' => Ok(c - b'0'),
+    b'a'..=b'f' => Ok(c - b'a' + 10),
+    b'A'..=b'F' => Ok(c - b'A' + 10),
+    _ => Err(()),
+  }
 }

@@ -132,11 +132,11 @@ macro_rules! ascii_case_insensitive_phf_map {
 /// Create a new array of MaybeUninit<T> items, in an uninitialized state.
 #[inline(always)]
 pub fn _cssparser_internal_create_uninit_array<const N: usize>() -> [MaybeUninit<u8>; N] {
-    unsafe {
-        // SAFETY: An uninitialized `[MaybeUninit<_>; LEN]` is valid.
-        // See: https://doc.rust-lang.org/stable/core/mem/union.MaybeUninit.html#method.uninit_array
-        MaybeUninit::<[MaybeUninit<u8>; N]>::uninit().assume_init()
-    }
+  unsafe {
+    // SAFETY: An uninitialized `[MaybeUninit<_>; LEN]` is valid.
+    // See: https://doc.rust-lang.org/stable/core/mem/union.MaybeUninit.html#method.uninit_array
+    MaybeUninit::<[MaybeUninit<u8>; N]>::uninit().assume_init()
+  }
 }
 
 /// Implementation detail of match_ignore_ascii_case! and ascii_case_insensitive_phf_map! macros.
@@ -149,11 +149,11 @@ pub fn _cssparser_internal_create_uninit_array<const N: usize>() -> [MaybeUninit
 #[macro_export]
 #[doc(hidden)]
 macro_rules! _cssparser_internal_to_lowercase {
-    ($input: expr, $BUFFER_SIZE: expr => $output: ident) => {
-        let mut buffer = $crate::_cssparser_internal_create_uninit_array::<{ $BUFFER_SIZE }>();
-        let input: &str = $input;
-        let $output = $crate::_cssparser_internal_to_lowercase(&mut buffer, input);
-    };
+  ($input: expr, $BUFFER_SIZE: expr => $output: ident) => {
+    let mut buffer = $crate::_cssparser_internal_create_uninit_array::<{ $BUFFER_SIZE }>();
+    let input: &str = $input;
+    let $output = $crate::_cssparser_internal_to_lowercase(&mut buffer, input);
+  };
 }
 
 /// Implementation detail of match_ignore_ascii_case! and ascii_case_insensitive_phf_map! macros.
@@ -166,39 +166,38 @@ macro_rules! _cssparser_internal_to_lowercase {
 #[allow(non_snake_case)]
 #[inline]
 pub fn _cssparser_internal_to_lowercase<'a>(
+  buffer: &'a mut [MaybeUninit<u8>],
+  input: &'a str,
+) -> Option<&'a str> {
+  let buffer = buffer.get_mut(..input.len())?;
+
+  #[cold]
+  fn make_ascii_lowercase<'a>(
     buffer: &'a mut [MaybeUninit<u8>],
     input: &'a str,
-) -> Option<&'a str> {
-    let buffer = buffer.get_mut(..input.len())?;
+    first_uppercase: usize,
+  ) -> &'a str {
+    // This cast doesn't change the pointer's validity
+    // since `u8` has the same layout as `MaybeUninit<u8>`:
+    let input_bytes = unsafe { &*(input.as_bytes() as *const [u8] as *const [MaybeUninit<u8>]) };
 
-    #[cold]
-    fn make_ascii_lowercase<'a>(
-        buffer: &'a mut [MaybeUninit<u8>],
-        input: &'a str,
-        first_uppercase: usize,
-    ) -> &'a str {
-        // This cast doesn't change the pointer's validity
-        // since `u8` has the same layout as `MaybeUninit<u8>`:
-        let input_bytes =
-            unsafe { &*(input.as_bytes() as *const [u8] as *const [MaybeUninit<u8>]) };
+    buffer.copy_from_slice(input_bytes);
 
-        buffer.copy_from_slice(input_bytes);
+    // Same as above re layout, plus these bytes have been initialized:
+    let buffer = unsafe { &mut *(buffer as *mut [MaybeUninit<u8>] as *mut [u8]) };
 
-        // Same as above re layout, plus these bytes have been initialized:
-        let buffer = unsafe { &mut *(buffer as *mut [MaybeUninit<u8>] as *mut [u8]) };
+    buffer[first_uppercase..].make_ascii_lowercase();
+    // `buffer` was initialized to a copy of `input`
+    // (which is `&str` so well-formed UTF-8)
+    // then ASCII-lowercased (which preserves UTF-8 well-formedness):
+    unsafe { ::std::str::from_utf8_unchecked(buffer) }
+  }
 
-        buffer[first_uppercase..].make_ascii_lowercase();
-        // `buffer` was initialized to a copy of `input`
-        // (which is `&str` so well-formed UTF-8)
-        // then ASCII-lowercased (which preserves UTF-8 well-formedness):
-        unsafe { ::std::str::from_utf8_unchecked(buffer) }
-    }
-
-    Some(
-        match input.bytes().position(|byte| byte.is_ascii_uppercase()) {
-            Some(first_uppercase) => make_ascii_lowercase(buffer, input, first_uppercase),
-            // common case: input is already lower-case
-            None => input,
-        },
-    )
+  Some(
+    match input.bytes().position(|byte| byte.is_ascii_uppercase()) {
+      Some(first_uppercase) => make_ascii_lowercase(buffer, input, first_uppercase),
+      // common case: input is already lower-case
+      None => input,
+    },
+  )
 }
