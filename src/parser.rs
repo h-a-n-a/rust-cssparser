@@ -1041,6 +1041,16 @@ impl<'i: 't, 't> Parser<'i, 't> {
       }
     }
   }
+
+  // Less-specific
+
+  /// Parse a less variable curly token, return the variable name.
+  #[inline]
+  pub fn expect_less_variable_curly(&mut self) -> Result<&CowRcStr<'i>, BasicParseError<'i>> {
+    expect! {self,
+        Token::LessVariableCurly(ref name) => Ok(name),
+    }
+  }
 }
 
 pub fn parse_until_before<'i: 't, 't, F, T, E>(

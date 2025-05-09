@@ -188,6 +188,17 @@ pub enum Token<'a> {
   /// When obtained from one of the `Parser::next*` methods,
   /// this token is always unmatched and indicates a parse error.
   CloseCurlyBracket,
+
+  // Less-specific Tokens
+  /// A `@{...}` token
+  ///
+  /// The value does not include the outer `@{` and `}` token.
+  ///
+  /// A variable interoplation token,
+  /// which is used to control values in CSS rules,
+  /// but they can also be used in other places as well, such as selector names,
+  /// property names, URLs and @import statements.
+  LessVariableCurly(CowRcStr<'a>),
 }
 
 impl Token<'_> {
@@ -470,22 +481,6 @@ impl<'a> Tokenizer<'a> {
     self.input.as_bytes()[self.position..].starts_with(needle)
   }
 
-  // CHANGE: less variable curly
-  pub fn skip_variable_curly(&mut self) {
-    while !self.is_eof() {
-      match_byte! { self.next_byte_unchecked(),
-        b'@' => {
-          if self.starts_with(b"@{") {
-            dbg!(consume_variable_curly(self));
-          } else {
-            return
-          }
-        }
-        _ => return,
-      }
-    }
-  }
-
   pub fn skip_whitespace(&mut self) {
     while !self.is_eof() {
       match_byte! { self.next_byte_unchecked(),
@@ -672,9 +667,14 @@ fn next_token<'a>(tokenizer: &mut Tokenizer<'a>) -> Result<Token<'a>, ()> {
           }
       },
       b'@' => {
-          tokenizer.advance(1);
-          if is_ident_start(tokenizer) { AtKeyword(consume_name(tokenizer)) }
-          else { Delim('@') }
+          if tokenizer.starts_with(b"@{") {
+              consume_less_variable_curly(tokenizer)?
+          } else {
+              tokenizer.advance(1);
+              if is_ident_start(tokenizer) { AtKeyword(consume_name(tokenizer)) }
+              else { Delim('@') }
+          }
+
       },
       b'a'..=b'z' | b'A'..=b'Z' | b'_' | b'\0' => consume_ident_like(tokenizer),
       b'[' => { tokenizer.advance(1); SquareBracketBlock },
@@ -755,28 +755,29 @@ fn check_for_source_map<'a>(tokenizer: &mut Tokenizer<'a>, contents: &'a str) {
   }
 }
 
-// CHANGE:
-// Less consume variable curly "@{foo}"
-fn consume_variable_curly<'a>(tokenizer: &mut Tokenizer<'a>) -> Option<&'a str> {
-  let state = tokenizer.state();
-  dbg!(tokenizer.slice_from(tokenizer.position()));
+// Less consume variable curly:
+//
+// @{...}
+//
+// The original regex is written as /^@\{([\w-]+)\}/.
+// This contains a-z, A-Z, 0-9, -, _ characters.
+fn consume_less_variable_curly<'a>(tokenizer: &mut Tokenizer<'a>) -> Result<Token<'a>, ()> {
   tokenizer.advance(2); // consume "@{"
   let start_position = tokenizer.position();
   while !tokenizer.is_eof() {
     match_byte! { tokenizer.next_byte_unchecked(),
       b'}' => {
-          let end_position = tokenizer.position();
+        let name = tokenizer.slice_from(start_position);
           tokenizer.advance(1);
-          return Some(tokenizer.slice(start_position..end_position));
+          return Ok(Token::LessVariableCurly(name.into()));
       }
-      _ => {
-          // ASCII or other leading byte.
-          tokenizer.advance(1);
+      b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'_' | b'-' => {
+        tokenizer.advance(1);
       }
+      _ => break
     }
   }
-  tokenizer.reset(&state);
-  None
+  Err(())
 }
 
 fn consume_comment<'a>(tokenizer: &mut Tokenizer<'a>) -> &'a str {
