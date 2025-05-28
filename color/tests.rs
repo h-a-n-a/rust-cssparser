@@ -70,7 +70,7 @@ fn run_json_tests<F: Fn(&mut Parser) -> Value>(json_data: &str, parse: F) {
 fn run_color_tests<F: Fn(Result<Color, ()>) -> Value>(json_data: &str, to_json: F) {
   run_json_tests(json_data, |input| {
     let result: Result<_, ParseError<()>> =
-      input.parse_entirely(|i| Color::parse(i).map_err(Into::into));
+      input.parse_entirely(|i| Color::parse(i));
     to_json(result.map_err(|_| ()))
   });
 }
