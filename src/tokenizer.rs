@@ -198,7 +198,7 @@ pub enum Token<'a> {
   /// which is used to control values in CSS rules,
   /// but they can also be used in other places as well, such as selector names,
   /// property names, URLs and @import statements.
-  LessVariableCurly(CowRcStr<'a>),
+  VariableCurly(CowRcStr<'a>),
 }
 
 impl Token<'_> {
@@ -769,7 +769,7 @@ fn consume_less_variable_curly<'a>(tokenizer: &mut Tokenizer<'a>) -> Result<Toke
       b'}' => {
         let name = tokenizer.slice_from(start_position);
           tokenizer.advance(1);
-          return Ok(Token::LessVariableCurly(name.into()));
+          return Ok(Token::VariableCurly(name.into()));
       }
       b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'_' | b'-' => {
         tokenizer.advance(1);

@@ -540,6 +540,11 @@ impl<'i: 't, 't> Parser<'i, 't> {
     byte
   }
 
+  #[inline]
+  pub fn advance(&mut self, n: usize) {
+    self.input.tokenizer.advance(n);
+  }
+
   /// Restore the internal state of the parser (including position within the input)
   /// to what was previously saved by the `Parser::position` method.
   ///
@@ -1048,7 +1053,7 @@ impl<'i: 't, 't> Parser<'i, 't> {
   #[inline]
   pub fn expect_less_variable_curly(&mut self) -> Result<&CowRcStr<'i>, BasicParseError<'i>> {
     expect! {self,
-        Token::LessVariableCurly(ref name) => Ok(name),
+        Token::VariableCurly(ref name) => Ok(name),
     }
   }
 }

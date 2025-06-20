@@ -157,7 +157,7 @@ impl ToCss for Token<'_> {
       Token::CloseCurlyBracket => dest.write_str("}")?,
 
       // Less-specific
-      Token::LessVariableCurly(ref variable) => {
+      Token::VariableCurly(ref variable) => {
         dest.write_str("@{")?;
         dest.write_str(variable)?;
         dest.write_char('}')?;
@@ -595,7 +595,7 @@ impl Token<'_> {
       | Token::SuffixMatch => Other,
 
       // Less-specific
-      Token::LessVariableCurly(_) => Other,
+      Token::VariableCurly(_) => Other,
     }
   }
 }

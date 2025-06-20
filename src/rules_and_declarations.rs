@@ -261,6 +261,9 @@ where
           let name = name.clone();
           return Some(parse_at_rule(&start, name, self.input, &mut *self.parser));
         }
+        Token::VariableCurly(_) => {
+          todo!("support parsing of Less variables in declaration properties");
+        }
         // https://drafts.csswg.org/css-syntax/#consume-a-declaration bails out just to
         // keep parsing as a qualified rule if the token is not an ident, so we implement
         // that in a slightly more straight-forward way
