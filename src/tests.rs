@@ -1057,7 +1057,7 @@ fn one_component_value_to_json(token: Token, input: &mut Parser) -> Value {
     Token::CloseCurlyBracket => JArray!["error", "}"],
 
     // Less
-    Token::LessVariableCurly(variable) => Value::Array(vec!["@{}".to_json(), variable.to_json()]),
+    Token::VariableCurly(variable) => Value::Array(vec!["@{}".to_json(), variable.to_json()]),
   }
 }
 
